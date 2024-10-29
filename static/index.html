@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContactManager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .action-buttons button {
+            margin-right: 10px;
+        }
+        .top-buttons {
+            margin-bottom: 20px;
+        }
+        .no-data {
+            text-align: center;
+            font-style: italic;
+            color: gray;
+            display: none; /* 默认隐藏 */
+        }
+        .contacts-image {
+            max-width: 100px;
+            max-height: 100px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h1>ContactManager</h1>
+<div class="top-buttons">
+    <button onclick="window.location.href='/add.html'">Add</button>
+</div>
+<table id="contactssTable">
+    <thead>
+    <tr>
+        <th>Number</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Age</th>
+        <th>Operation</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Dynamically load contact data -->
+    </tbody>
+</table>
+<div id="noDataMessage" class="no-data">Currently, there is no data available</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadBooks();
+    });
+
+    function loadBooks() {
+        $.ajax({
+            url: '/contacts/search',
+            method: 'GET',
+            success: function(response) {
+                const contactssTableBody = document.querySelector('#contactssTable tbody');
+                const noDataMessage = document.querySelector('#noDataMessage');
+                contactssTableBody.innerHTML = '';
+                if (response.data.length > 0) {
+                    response.data.forEach(contacts => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${contacts.id}</td>
+                            <td>${contacts.name}</td>
+                            <td>${contacts.phone}</td>
+                            <td>${contacts.age}</td>
+                            <td class="action-buttons">
+                                <button onclick="editBook(${contacts.id})">Modify</button>
+                                <button onclick="deleteBook(${contacts.id})">Delete</button>
+                            </td>
+                        `;
+                        contactssTableBody.appendChild(row);
+                    });
+                    noDataMessage.style.display = 'none'; // Hide prompt information when data is available
+                } else {
+                    noDataMessage.style.display = 'block'; // Display prompt message when there is no data available
+                }
+            },
+            error: function(error) {
+                console.error('Failed to retrieve contact information:', error);
+            }
+        });
+    }
+
+    function editBook(id) {
+        window.location.href = `/edit.html?id=${id}`;
+    }
+
+    function deleteBook(id) {
+        $.ajax({
+            url: `/contacts/delete/${id}`,
+            method: 'DELETE',
+            success: function(response) {
+                if (response.code === 1) {
+                    loadBooks();
+                    alert('Contact deleted successfully');
+                } else {
+                    alert('Failed to delete contact: ' + response.msg);
+                }
+            },
+            error: function(error) {
+                console.error('Failed to delete contact:', error);
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

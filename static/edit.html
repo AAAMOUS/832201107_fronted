@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员 - 编辑联系人</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        .edit-contacts-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .contacts-details {
+            margin-bottom: 20px;
+        }
+
+        .contacts-details label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .contacts-details input,
+        .contacts-details select,
+        .contacts-details textarea {
+            width: calc(100% - 20px); /* Adjusted to account for padding */
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .contacts-image-preview {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .contacts-image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 0 auto; /* Center align submit button */
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<button class="back-button" onclick="window.location.href='index.html'">Return</button>
+<h1 style="text-align: center;">Edit Contact</h1>
+
+<div class="edit-contacts-form">
+    <form id="editForm" enctype="multipart/form-data">
+        <input type="hidden" id="id" name="id">
+
+        <div class="contacts-details">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="contacts-details">
+            <label for="phone">Phone:</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+
+
+        <div class="contacts-details">
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" min="0" step="0.01" required>
+        </div>
+
+        <input type="submit" value="OK">
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        function fetchContactsDetails(id) {
+            $.ajax({
+                url: '/contacts/find/' + id,
+                type: 'GET',
+                success: function (response) {
+                    var contacts = response.data;
+                    $('#id').val(contacts.id);
+                    $('#name').val(contacts.name);
+                    $('#phone').val(contacts.phone);
+                    $('#age').val(contacts.age);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error occurred while obtaining contact details:', error);
+                    // Handle error if needed
+                }
+            });
+        }
+
+        var urlParams = new URLSearchParams(window.location.search);
+        var editId = urlParams.get('id');
+        if (editId) {
+            fetchContactsDetails(editId);
+        }
+
+        $('#editForm').submit(function (event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/contacts/edit',
+                type: 'PUT',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    // Handle success, e.g., show success message or redirect
+                    console.log('The contact has been successfully updated:', response);
+                    alert('Contact updated successfully！');
+                    setTimeout(function () {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error updating contacts:', error);
+                    alert('Error updating contacts, please try again.');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
